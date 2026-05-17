@@ -1,0 +1,6 @@
+@CoopChat_HostAddress = http://localhost:5268
+
+GET {{CoopChat_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
