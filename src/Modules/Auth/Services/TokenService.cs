@@ -25,7 +25,7 @@ public class TokenService
         var token = new JwtSecurityToken(
             claims: claims,
             expires: DateTime.Now.AddHours(1), // curta duração
-            signingCredentials: creds
+            signingCredentials: creds   
         );
 
         // Retorna token em string

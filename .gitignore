@@ -22,5 +22,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-bin
-properties
+bin/Debug/net9.0/
+Properties/
+obj/

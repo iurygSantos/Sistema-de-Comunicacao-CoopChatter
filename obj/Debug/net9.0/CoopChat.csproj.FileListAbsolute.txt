@@ -48,7 +48,7 @@ C:\CODIGOS\Projetos desenvolvidos\TCC - Chat\CoopChat\obj\Debug\net9.0\ref\CoopC
 C:\CODIGOS\Projetos desenvolvidos\TCC - Chat\CoopChat\bin\Debug\net9.0\Swashbuckle.AspNetCore.Swagger.dll
 C:\CODIGOS\Projetos desenvolvidos\TCC - Chat\CoopChat\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 C:\CODIGOS\Projetos desenvolvidos\TCC - Chat\CoopChat\bin\Debug\net9.0\Swashbuckle.AspNetCore.SwaggerUI.dll
-C:\CODIGOS\Projetos desenvolvidos\TCC - Chat\CoopChat\bin\Debug\net9.0\frontend\package-lock.json
-C:\CODIGOS\Projetos desenvolvidos\TCC - Chat\CoopChat\bin\Debug\net9.0\frontend\package.json
-C:\CODIGOS\Projetos desenvolvidos\TCC - Chat\CoopChat\bin\Debug\net9.0\frontend\public\manifest.json
 C:\CODIGOS\Projetos desenvolvidos\TCC - Chat\CoopChat\obj\Debug\net9.0\CoopChat.sourcelink.json
+C:\CODIGOS\Projetos desenvolvidos\TCC - Chat\CoopChat\bin\Debug\net9.0\app\package-lock.json
+C:\CODIGOS\Projetos desenvolvidos\TCC - Chat\CoopChat\bin\Debug\net9.0\app\package.json
+C:\CODIGOS\Projetos desenvolvidos\TCC - Chat\CoopChat\bin\Debug\net9.0\app\public\manifest.json

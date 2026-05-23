@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.Net;
 
 [ApiController]
 [Route("auth")]
@@ -42,12 +43,12 @@ public class AuthController : ControllerBase
         return Ok();
     }
 
-    // Login
+/*============================================================================================================*/
+
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
-        // Busca usuário
-        var user = await _context.usuarios.FirstOrDefaultAsync(u => u.username == dto.username);
+        var user = await _authService.GetUser(dto.username);
 
         // Verifica usuário
         if (user == null)
@@ -59,9 +60,36 @@ public class AuthController : ControllerBase
 
         // Gera token
         var token = _tokenService.GenerateToken(user);
+        
+        /*CRIA COOKIE HTTP ONLY*/
+        Response.Cookies.Append("token", token, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddMinutes(5) // Expira em 5 minutos
+        });
 
-        return Ok(new { token });
+        return Ok(new { message = "Login realizado" });
     }
+
+/*============================================================================================================*/
+
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        Response.Cookies.Delete("token", new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = false, // true em produção (HTTPS)
+            SameSite = SameSiteMode.Lax
+        });
+
+        return Ok(new { message = "Logout realizado com sucesso" });
+    }
+
+/*============================================================================================================*/
+
 
     [Authorize]
     [HttpGet("me")]
@@ -69,15 +97,15 @@ public class AuthController : ControllerBase
     {
         try 
         {
-
             var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             
             var user = await _context.usuarios.FindAsync(int.Parse(userId));
 
-            if (user == null) return NotFound("Usuário não encontrado");
+            if (user == null) 
+                return NotFound("Usuário não encontrado");
 
             return Ok(new { 
-                id = user.id,
+                userId = user.id,
                 name = user.name,
                 username = user.username
             });
