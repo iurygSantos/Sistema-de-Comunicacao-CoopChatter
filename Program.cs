@@ -36,7 +36,7 @@ builder.Services.AddAuthentication(options =>
             Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
 
-    /*PEGA TOKEN DO COOKIE*/
+    /*PEGA TOKEN DO COOKIE PARA USAR NO SIGNALR*/
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
@@ -58,6 +58,7 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 
 // Permite que o Swagger descubra os endpoints automaticamente
 builder.Services.AddEndpointsApiExplorer();
@@ -129,6 +130,9 @@ app.UseAuthentication();
 
 // Habilita autorização
 app.UseAuthorization();
+
+// Mapeia os SignalR Hubs
+app.MapHub<Chat>("/chat"); // Rota para o SignalR Hub de chat
 
 // Mapeia os controllers (rotas)
 app.MapControllers();

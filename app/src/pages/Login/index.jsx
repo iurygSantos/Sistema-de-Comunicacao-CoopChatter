@@ -28,7 +28,7 @@ function Login() {
 
             alert(`Login realizado para usuário: ${username}`);
             
-            navigate("/home");
+            navigate("/chat");
 
         }
         catch (error) {

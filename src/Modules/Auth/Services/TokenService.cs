@@ -18,13 +18,14 @@ public class TokenService
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, user.id.ToString()),
-            // new Claim(ClaimTypes.Email, user.username)
+            new Claim(ClaimTypes.Name, user.name),
+            new Claim("username", user.username)
         };
 
         // Cria token
         var token = new JwtSecurityToken(
             claims: claims,
-            expires: DateTime.Now.AddHours(1), // curta duração
+            expires: DateTime.Now.AddMinutes(1), // curta duração
             signingCredentials: creds   
         );
 

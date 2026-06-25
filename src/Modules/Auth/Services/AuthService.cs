@@ -1,7 +1,6 @@
 using BCrypt.Net;
 using Microsoft.EntityFrameworkCore;
 
-// Serviço responsável por autenticação
 public class AuthService
 {
     private readonly AppDbContext _context;
@@ -30,3 +29,6 @@ public class AuthService
         return await _context.usuarios.FirstOrDefaultAsync(u => u.username == username);
     }
 }
+
+
+

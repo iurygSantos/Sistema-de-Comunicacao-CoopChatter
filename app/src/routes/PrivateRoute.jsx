@@ -1,6 +1,6 @@
+import api from "../services/api";
 import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
-import api from "../services/api";
 
 // Componente que protege rotas
 const PrivateRoute = ({ children }) => 
@@ -12,21 +12,24 @@ const PrivateRoute = ({ children }) =>
         const checkAuth = async () => {
             try 
             {
-                await api.get("/auth/me", {
+                await api.get("/auth/me", {}, {
                     withCredentials: true, // Envia cookies
                 });
+
                 setIsAuth(true);
             } 
             catch (error) {
+                console.log("Verificação de erro - catch");
                 setIsAuth(false);
             } 
-            finally {
+            finally { 
                 setLoading(false);
             }
         };
 
         checkAuth();
     }, []);
+    
 
     if (loading) 
         return <div>Carregando...</div>;

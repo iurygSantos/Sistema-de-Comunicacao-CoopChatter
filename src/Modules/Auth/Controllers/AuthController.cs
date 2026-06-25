@@ -65,9 +65,9 @@ public class AuthController : ControllerBase
         Response.Cookies.Append("token", token, new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Expires = DateTime.UtcNow.AddMinutes(5) // Expira em 5 minutos
+            Secure = false, // Em desenvolvimento (HTTP), Secure deve ser "false". Em produção (HTTPS), "true".
+            SameSite = SameSiteMode.Lax,     // Use Lax ou None para permitir o envio entre portas diferentes no localhost - se for porta igual usar "Strict"
+            Expires = DateTime.UtcNow.AddMinutes(1) // Expira em 5 minutos
         });
 
         return Ok(new { message = "Login realizado" });
@@ -90,24 +90,32 @@ public class AuthController : ControllerBase
 
 /*============================================================================================================*/
 
-
     [Authorize]
     [HttpGet("me")]
     public async Task<IActionResult> Me()
     {
         try 
         {
-            var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            var user = await _context.usuarios.FindAsync(int.Parse(userId));
+            var userIdClaim     = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
+            // var nameClaim       = HttpContext.User.FindFirst(ClaimTypes.Name)?.Value;
+            // var usernameClaim   = HttpContext.User.FindFirst("username")?.Value;
+
+
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId)) 
+                // Se o ID não for encontrado ou não for um inteiro válido, é um token inválido
+                return Unauthorized("ID de usuário inválido no token.");
+                // return NotFound("Usuário não encontrado");
+
+            var user = await _context.usuarios.FindAsync(userId);
 
             if (user == null) 
-                return NotFound("Usuário não encontrado");
+                return NotFound("Usuário não encontrado no sistema.");
+
 
             return Ok(new { 
-                userId = user.id,
-                name = user.name,
-                username = user.username
+                idUser      = user.id,
+                nome        = user.name,
+                username    = user.username
             });
         }
         catch (Exception e)

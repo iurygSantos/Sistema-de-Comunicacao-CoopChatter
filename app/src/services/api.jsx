@@ -7,30 +7,19 @@ const api = axios.create({
     withCredentials: true, // Envia cookies
 });
 
-// Interceptor para adicionar token automaticamente
-api.interceptors.request.use((config) => {
-    // Pega token do localStorage
-    const token = localStorage.getItem("token");
-
-    // Se existir, adiciona no header
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return config;
-});
-
-api.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        if (error.response && error.response.status === 401) 
-        {
-            /*SESSÃO INVALIDA*/ 
-            window.location.href = "/login"; // Redireciona para login
-        }
+// api.interceptors.response.use(
+//     (response) => response,
+//     (error) => {
+//         if (error.response && error.response.status === 401) 
+//         {
+//             console.log("Sessão inválida. Redirecionando para login...");
+            
+//             /*SESSÃO INVALIDA*/ 
+//             window.location.href = "/login"; // Redireciona para login
+//         }
         
-        return Promise.reject(error);
-    }
-);
+//         return Promise.reject(error);
+//     }
+// );
 
 export default api;

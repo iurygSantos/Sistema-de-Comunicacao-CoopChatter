@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "K7omMZQsRJQ=",
+  "dgSpecHash": "I2wjQ+fnK0g=",
   "success": true,
   "projectFilePath": "C:\\CODIGOS\\Projetos desenvolvidos\\TCC - Chat\\CoopChat\\CoopChat.csproj",
   "expectedPackageFiles": [
@@ -20,11 +20,11 @@
     "C:\\Users\\Iury Buss\\.nuget\\packages\\microsoft.aspnetcore.http.features\\2.3.0\\microsoft.aspnetcore.http.features.2.3.0.nupkg.sha512",
     "C:\\Users\\Iury Buss\\.nuget\\packages\\microsoft.aspnetcore.routing\\2.3.0\\microsoft.aspnetcore.routing.2.3.0.nupkg.sha512",
     "C:\\Users\\Iury Buss\\.nuget\\packages\\microsoft.aspnetcore.routing.abstractions\\2.3.0\\microsoft.aspnetcore.routing.abstractions.2.3.0.nupkg.sha512",
-    "C:\\Users\\Iury Buss\\.nuget\\packages\\microsoft.aspnetcore.signalr\\1.2.9\\microsoft.aspnetcore.signalr.1.2.9.nupkg.sha512",
+    "C:\\Users\\Iury Buss\\.nuget\\packages\\microsoft.aspnetcore.signalr\\1.2.10\\microsoft.aspnetcore.signalr.1.2.10.nupkg.sha512",
     "C:\\Users\\Iury Buss\\.nuget\\packages\\microsoft.aspnetcore.signalr.common\\1.2.0\\microsoft.aspnetcore.signalr.common.1.2.0.nupkg.sha512",
     "C:\\Users\\Iury Buss\\.nuget\\packages\\microsoft.aspnetcore.signalr.core\\1.2.0\\microsoft.aspnetcore.signalr.core.1.2.0.nupkg.sha512",
     "C:\\Users\\Iury Buss\\.nuget\\packages\\microsoft.aspnetcore.signalr.protocols.json\\1.2.0\\microsoft.aspnetcore.signalr.protocols.json.1.2.0.nupkg.sha512",
-    "C:\\Users\\Iury Buss\\.nuget\\packages\\microsoft.aspnetcore.websockets\\2.3.0\\microsoft.aspnetcore.websockets.2.3.0.nupkg.sha512",
+    "C:\\Users\\Iury Buss\\.nuget\\packages\\microsoft.aspnetcore.websockets\\2.3.9\\microsoft.aspnetcore.websockets.2.3.9.nupkg.sha512",
     "C:\\Users\\Iury Buss\\.nuget\\packages\\microsoft.aspnetcore.webutilities\\2.3.0\\microsoft.aspnetcore.webutilities.2.3.0.nupkg.sha512",
     "C:\\Users\\Iury Buss\\.nuget\\packages\\microsoft.entityframeworkcore\\9.0.0\\microsoft.entityframeworkcore.9.0.0.nupkg.sha512",
     "C:\\Users\\Iury Buss\\.nuget\\packages\\microsoft.entityframeworkcore.abstractions\\9.0.0\\microsoft.entityframeworkcore.abstractions.9.0.0.nupkg.sha512",
