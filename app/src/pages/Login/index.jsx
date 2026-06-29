@@ -26,7 +26,7 @@ function Login() {
                 withCredentials: true, // Envia cookies
             });
 
-            alert(`Bem vindo : ${username}`);
+            alert(`Bem vindo ${username}`);
             
             navigate("/chat");
 

@@ -75,10 +75,8 @@ public class Chat : Hub
     {        
         var senderUserId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        
         if (string.IsNullOrEmpty(senderUserId))
         {
-            
             // O usuário não está autenticado no SignalR
             return;
         }
@@ -92,10 +90,10 @@ public class Chat : Hub
 
         // Envia a mensagem para o usuário específico (destinatário)
         // O SignalR usa o Context.UserIdentifier para mapear receiverUserId para as conexões ativas
-        await Clients.User(messageData.To).SendAsync("ReceivePrivateMessage", senderUserId, messagePayload);
+        await Clients.User(messagePayload.to).SendAsync("ReceivePrivateMessage", messagePayload);
         
         // Opcional: Enviar a mensagem de volta para o remetente para que ele veja no seu próprio chat
         // Isso é importante para que o remetente veja a mensagem que acabou de enviar
-        await Clients.Caller.SendAsync("ReceivePrivateMessage", senderUserId, messagePayload);
+        await Clients.Caller.SendAsync("ReceivePrivateMessage", messagePayload);
     }
 }

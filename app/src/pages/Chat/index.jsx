@@ -7,11 +7,11 @@ import { HubConnectionState } from "@microsoft/signalr";
 
 function Chat() 
 {
-    // Estado para armazenar os dados do usuário logado (obtidos do backend via /auth/me)
-    const [loggedInUser, setLoggedInUser] = useState(null);
-
     // Estado para armazenar a lista de usuários online recebida do SignalR
     const [onlineUsers, setOnlineUsers] = useState([]);     
+    
+    // Estado para armazenar os dados do usuário logado (obtidos do backend via /auth/me)
+    const [loggedInUser, setLoggedInUser] = useState(null);
     
     // Estado para armazenar o ID do usuário com quem o usuário logado deseja conversar
     const [selectedUserId, setSelectedUserId] = useState(null);
@@ -43,7 +43,7 @@ function Chat()
                 // Assume que a resposta contém { idUser, nome, username }
                 setLoggedInUser(response.data);
 
-                console.log("Dados do usuário logado carregados:", response.data);
+                // console.log("Dados do usuário logado carregados:", response.data);
             } 
             catch (error) {
                 console.error("Erro ao buscar dados do usuário logado:", error);
@@ -74,14 +74,14 @@ function Chat()
                 // Listener para receber mensagens privadas
                 // fromUserId: ID do remetente da mensagem
                 // message: Conteúdo da mensagem
-                connection.on("ReceivePrivateMessage", (fromUserId, messagePayload) => 
+                connection.on("ReceivePrivateMessage", (messagePayload) => 
                 {
-                    console.log(`[SignalR] Mensagem recebida de ${fromUserId}: `, messagePayload);
+                    // console.log(`[SignalR] Mensagem recebida de ${fromUserId}: `, messagePayload);
 
                     // fromUserId é o primeiro argumento do SendAsync do backend
                     const aFromUserId    = messagePayload.from; // O ID de quem realmente enviou
                     const aToUserId      = messagePayload.to;     // O ID para quem a mensagem foi enviada
-                    const messageText   = messagePayload.text;      // O texto da mensagem
+                    const messageText   = messagePayload.message;      // O texto da mensagem
 
                     setMessages(prevMessages => 
                     {
@@ -89,11 +89,11 @@ function Chat()
                         // ou se é uma mensagem do próprio usuário logado para o usuário selecionado
                         // (assumindo que o backend envia \'toUserId\' na mensagem para o remetente)
                         if (selectedUserId && 
-                            (String(aFromUserId) === String(selectedUserId) || (loggedInUser && 
-                            String(aFromUserId) === String(loggedInUser.idUser) && 
+                            (String(aFromUserId) === String(selectedUserId) || 
+                            (loggedInUser && String(aFromUserId) === String(loggedInUser.idUser) && 
                             String(aToUserId) === String(selectedUserId)))) 
                         {
-                            return [...prevMessages, { from: aFromUserId, text: messageText }];
+                            return [...prevMessages, { from: aFromUserId, to: aToUserId, message: messageText }];
                         }
                         return prevMessages; 
                     });
@@ -120,6 +120,7 @@ function Chat()
                         // Se loggedInUser ainda não está disponível, armazena a lista bruta
                         // e ela será filtrada na próxima vez que loggedInUser for atualizado
                         setOnlineUsers(usersList); 
+
                         console.log("[SignalR] loggedInUser.idUser não disponível, armazenando lista RAW.", usersList);
                     }
                 });
@@ -162,7 +163,8 @@ function Chat()
      * useEffect para rolar a lista de mensagens para o final automaticamente
      * sempre que novas mensagens são adicionadas ao estado `messages`.
      */
-    useEffect(() => {
+    useEffect(() => 
+    {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
@@ -210,7 +212,7 @@ function Chat()
                 
                 // Adiciona a mensagem enviada à lista de mensagens da conversa atual
                 // Certifique-se de que loggedInUser.idUser é o ID correto do remetente
-                setMessages(prevMessages => [...prevMessages, { from: loggedInUser.idUser, message: messageInput }]);
+                // setMessages(prevMessages => [...prevMessages, { from: messagePayload.from, to: messagePayload.to, message: messagePayload.message }]);
                 
                 setMessageInput(""); // Limpa o campo de input após enviar
             } 
@@ -237,7 +239,7 @@ function Chat()
         setSelectedUser(user); // Armazena o objeto completo para exibição
         setMessages([]); // Limpa as mensagens ao selecionar um novo usuário
 
-        console.log(`Usuário selecionado: ${user.name} (ID: ${user.id})`);
+        // console.log(`Usuário selecionado: ${user.name} (ID: ${user.id})`);
     };
 
     return (
@@ -288,33 +290,37 @@ function Chat()
                         {/* Área de exibição de mensagens */}
                         <div style={{ flexGrow: 1, border: '1px solid #eee', padding: '10px', overflowY: 'auto', marginBottom: '10px' }}>
 
-                            {messages.length === 0 ? (
-                                <p>Nenhuma mensagem nesta conversa.</p>
-                            ) 
-                            : 
-                            (
-                                messages.map((msg, index) => (
-                                    <div 
-                                        key={index} 
-                                        style={{
-                                            textAlign: String(msg.from) === String(loggedInUser?.idUser) ? 'right' : 'left',
-                                            margin: '5px 0'
-                                        }}
-                                    >
-                                        <span 
-                                            style={{
-                                                backgroundColor: String(msg.from) === String(loggedInUser?.idUser) ? '#dcf8c6' : '#f1f0f0',
-                                                padding: '8px 12px',
-                                                borderRadius: '15px',
-                                                display: 'inline-block',
-                                                maxWidth: '70%'
-                                            }}
-                                        >
-                                            {msg.text}
-                                        </span>
-                                    </div>
-                                ))
-                            )}
+                            {
+                                messages.length === 0 ? (
+                                    <p>Nenhuma mensagem nesta conversa.</p>
+                                ) : (
+                                    messages.map((msg, index) => {
+                                        const isMine = String(msg.from) === String(loggedInUser?.idUser);
+
+                                        return (
+                                            <div
+                                                key={index}
+                                                style={{
+                                                    textAlign: isMine ? 'right' : 'left',
+                                                    margin: '5px 0'
+                                                }}
+                                            >
+                                                <span
+                                                    style={{
+                                                        backgroundColor: isMine ? '#dcf8c6' : '#f1f0f0',
+                                                        padding: '8px 12px',
+                                                        borderRadius: '15px',
+                                                        display: 'inline-block',
+                                                        maxWidth: '70%'
+                                                    }}
+                                                >
+                                                    {msg.message}
+                                                </span>
+                                            </div>
+                                        );
+                                    })
+                                )
+                            }
                             <div ref={messagesEndRef} /> {/* Elemento para rolagem automática */}
                         </div>
 
