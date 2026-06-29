@@ -51,7 +51,7 @@ public class Chat : Hub
 
         // Busca os detalhes dos usuários no banco de dados
         // Assumindo que seu modelo de usuário tem propriedades Id, Nome e Username
-        var usersDetails = await _context.usuarios
+        var usersDetails = await _context.Usuario
             .Where(u => onlineUserIds.Contains(u.id.ToString())) // Converte int para string para comparar
             .Select(u => new UserOnlineDto 
             { 

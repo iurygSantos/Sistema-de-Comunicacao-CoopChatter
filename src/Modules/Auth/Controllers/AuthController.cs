@@ -25,7 +25,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register(RegisterDto dto)
     {
         // Verifica se email já existe
-        if (await _context.usuarios.AnyAsync(u => u.username == dto.Username))
+        if (await _context.Usuario.AnyAsync(u => u.username == dto.Username))
             return BadRequest("Email já cadastrado");
 
         // Cria usuário
@@ -37,7 +37,7 @@ public class AuthController : ControllerBase
         };
 
         // Salva no banco
-        _context.usuarios.Add(user);
+        _context.Usuario.Add(user);
         await _context.SaveChangesAsync();
 
         return Ok();
@@ -89,6 +89,23 @@ public class AuthController : ControllerBase
     }
 
 /*============================================================================================================*/
+    [HttpGet("messages/{userId}")]
+    // public async Task<IActionResult> GetMessages(string userId)
+    // {
+    //     var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+    //     var messages = await _context.Messages
+    //         .Where(m =>
+    //             (m.From == currentUserId && m.To == userId) ||
+    //             (m.From == userId && m.To == currentUserId))
+    //         .OrderBy(m => m.CreatedAt)
+    //         .ToListAsync();
+
+    //     return Ok(messages);
+    // }
+
+/*============================================================================================================*/
+
 
     [Authorize]
     [HttpGet("me")]
@@ -104,7 +121,7 @@ public class AuthController : ControllerBase
                 // Se o ID não for encontrado ou não for um inteiro válido, é um token inválido
                 return Unauthorized("ID de usuário inválido no token.");
 
-            var user = await _context.usuarios.FindAsync(userId);
+            var user = await _context.Usuario.FindAsync(userId);
 
             if (user == null) 
                 return NotFound("Usuário não encontrado no sistema.");

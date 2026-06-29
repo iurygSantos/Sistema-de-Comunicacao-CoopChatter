@@ -235,9 +235,16 @@ function Chat()
      */
     const handleUserSelect = (user) => 
     {
-        setSelectedUserId(user.id); // Armazena o ID para envio de mensagens
-        setSelectedUser(user); // Armazena o objeto completo para exibição
-        setMessages([]); // Limpa as mensagens ao selecionar um novo usuário
+        console.log(selectedUserId)
+        console.log(selectedUser)
+
+        if (selectedUserId !== user.id)
+        {
+            setSelectedUserId(user.id); // Armazena o ID para envio de mensagens
+            setSelectedUser(user); // Armazena o objeto completo para exibição
+        
+            setMessages([]); // Limpa as mensagens ao selecionar um novo usuário
+        }
 
         // console.log(`Usuário selecionado: ${user.name} (ID: ${user.id})`);
     };
@@ -255,6 +262,8 @@ function Chat()
                 )}
                 <ButtonLogout />
                 
+                <hr />
+
                 <h3>Usuários online:</h3>
                 <ul>
                     {onlineUsers.length === 0 ? (
@@ -266,7 +275,7 @@ function Chat()
                                     onClick={() => handleUserSelect(user)}
                                     style={{
                                         fontWeight: selectedUserId === user.id ? 'bold' : 'normal',
-                                        backgroundColor: selectedUserId === user.id ? 'transparent' : 'red',
+                                        backgroundColor: selectedUserId === user.id ? '#a3bb9a65' : 'tranparent',
                                         border: 'none',
                                         padding: '5px',
                                         width: '100%',
@@ -332,11 +341,11 @@ function Chat()
                                 onChange={(e) => setMessageInput(e.target.value)}
                                 placeholder="Digite sua mensagem..."
                                 style={{ flexGrow: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '5px', marginRight: '10px' }}
-                                onKeyPress={(e) => { if (e.key === 'Enter') SendPrivateMessage(); }}
+                                onKeyPress={(e) => { if (e.key === 'Enter') SendPrivateMessage(); }} onfocus="this.selectionStart = thsi.selectionEnd"
                             />
                             <button 
                                 onClick={SendPrivateMessage}
-                                style={{ padding: '8px 15px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}
+                                style={{ padding: '8px 15px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }} 
                             >
                                 Enviar
                             </button>
