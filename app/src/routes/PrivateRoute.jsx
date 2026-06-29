@@ -9,17 +9,20 @@ const PrivateRoute = ({ children }) =>
     const [isAuth, setIsAuth]   = useState(false);
 
     useEffect(() => {
-        const checkAuth = async () => {
+        const checkAuth = async () => 
+        {
             try 
             {
-                await api.get("/auth/me", {}, {
+                await api.get("/auth/me", {
                     withCredentials: true, // Envia cookies
                 });
 
                 setIsAuth(true);
             } 
-            catch (error) {
+            catch (error) 
+            {
                 console.log("Verificação de erro - catch");
+
                 setIsAuth(false);
             } 
             finally { 

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CoopChat")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+98762e0da5b54bb40476bd3134ddcce5be91f616")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5caaaff6fb1cc9ba66454bf0012f7174584331f0")]
 [assembly: System.Reflection.AssemblyProductAttribute("CoopChat")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CoopChat")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

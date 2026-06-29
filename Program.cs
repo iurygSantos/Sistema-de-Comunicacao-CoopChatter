@@ -42,8 +42,10 @@ builder.Services.AddAuthentication(options =>
         OnMessageReceived = context =>
         {
             var token = context.Request.Cookies["token"];
-
-            if (!string.IsNullOrEmpty(token))
+            // var path = context.HttpContext.Request.Path;
+            
+            if (!string.IsNullOrEmpty(token)) 
+            // && (path.StartsWithSegments("/chat"))) // Se for rota do SignalR   
             {
                 context.Token = token;
             }
@@ -58,7 +60,13 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<TokenService>();
 builder.Services.AddControllers();
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(
+    options =>
+    {
+        options.EnableDetailedErrors = true;    /*COMENTAR QUANDO FOR PARA PRODUÇÃO -> SO EM DEV*/
+    }
+
+);
 
 // Permite que o Swagger descubra os endpoints automaticamente
 builder.Services.AddEndpointsApiExplorer();
@@ -68,11 +76,11 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
+        Name            = "Authorization",
+        Type            = SecuritySchemeType.Http,
+        Scheme          = "bearer",
+        BearerFormat    = "JWT",
+        In              = ParameterLocation.Header,
         Description = "Digite: Bearer {seu token}"
     });
 

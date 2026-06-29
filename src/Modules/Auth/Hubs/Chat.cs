@@ -1,65 +1,101 @@
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 public class Chat : Hub
 {
+    private readonly AppDbContext _context; 
+    private static readonly HashSet<string> ConnectedUsers = new HashSet<string>(); // Para IDs de conexão
+
+    public Chat(AppDbContext context)
+    {
+        _context = context;
+    }
+
     /*ARMAZENA USUARIOS ONLINE (USERID -> CONNECTIONID)*/
     private static Dictionary<string, List<string>> _connections = new();
 
-    /*METODO CHAMA FRONTEND*/
-    public async Task SendPrivateMessage(string toUserId, string message)
-    {
-        /*PEGANDO O ID DO USUÁRIO QUE ESTÁ ENVIANDO A MENSAGEM*/
-        var fromUserId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        if (fromUserId == null)
-        {
-            throw new Exception("Usuário não autenticado.");
-        }
-
-        /*ENVIANDO A MENSAGEM PARA O USUÁRIO DESTINATÁRIO*/
-        await Clients.User(toUserId).SendAsync("ReceivePrivateMessage", fromUserId, message);
-    }
 
     /*QUANDO ALGUEM CONECTA*/
     public override async Task OnConnectedAsync()
     {
-        // var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var userId = Context.UserIdentifier;
+        var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        if (!_connections.ContainsKey(userId))
+        if (!string.IsNullOrEmpty(userId))
         {
-            _connections[userId] = new List<string>();
+            ConnectedUsers.Add(userId); // Adiciona o ID do usuário logado
+            await SendUsersOnlineList(); // Envia a lista atualizada
         }
-
-        _connections[userId].Add(Context.ConnectionId);
-        
-        /*ENVIA LISTA ATUALIZADA PARA TODOS*/
-
-        await Clients.All.SendAsync("UsersOnline", _connections.Keys);
-
-        Console.WriteLine(Context.User?.Identity?.IsAuthenticated);
-
         await base.OnConnectedAsync();
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
-        var userId = Context.UserIdentifier;
-
-        if (userId != null && _connections.ContainsKey(userId))
+        var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (!string.IsNullOrEmpty(userId))
         {
-            _connections[userId].Remove(Context.ConnectionId);
+            ConnectedUsers.Remove(userId); // Remove o ID do usuário
+            await SendUsersOnlineList(); // Envia a lista atualizada
+        }
+        await base.OnDisconnectedAsync(exception);
+    }
+    
+    // Método para enviar a lista de usuários online com detalhes
+    public async Task SendUsersOnlineList()
+    {
+        // Pega os IDs dos usuários conectados
+        var onlineUserIds = ConnectedUsers.ToList();
 
-            if (_connections[userId].Count == 0)
-            {
-                _connections.Remove(userId);
-            }
+        // Busca os detalhes dos usuários no banco de dados
+        // Assumindo que seu modelo de usuário tem propriedades Id, Nome e Username
+        var usersDetails = await _context.usuarios
+            .Where(u => onlineUserIds.Contains(u.id.ToString())) // Converte int para string para comparar
+            .Select(u => new UserOnlineDto 
+            { 
+                Id = u.id.ToString(), 
+                Name = u.name, 
+                Username = u.username 
+            })
+            .ToListAsync();
+
+        // Envia a lista de DTOs para todos os clientes conectados
+        await Clients.All.SendAsync("UsersOnline", usersDetails.Select(u => new UserOnlineDto 
+        { 
+            Id = u.Id, 
+            Name = u.Name, 
+            Username = u.Username 
+        }).ToList());
+    }
+
+    /*METODO CHAMA FRONTEND*/
+    public async Task SendPrivateMessage(MessageDTO messageData)
+    {        
+        var senderUserId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        
+        if (string.IsNullOrEmpty(senderUserId))
+        {
+            
+            // O usuário não está autenticado no SignalR
+            return;
         }
 
-        /*ENVIA LISTA ATUALIZADA PARA TODOS*/
-        await Clients.All.SendAsync("UsersOnline", _connections.Keys);
+        var messagePayload = new 
+        { 
+            from    = senderUserId, 
+            to      = messageData.To, 
+            message = messageData.Message 
+        };
 
-        await base.OnDisconnectedAsync(exception);
+        // Envia a mensagem para o usuário específico (destinatário)
+        // O SignalR usa o Context.UserIdentifier para mapear receiverUserId para as conexões ativas
+        await Clients.User(messageData.To).SendAsync("ReceivePrivateMessage", senderUserId, messagePayload);
+        
+        // Opcional: Enviar a mensagem de volta para o remetente para que ele veja no seu próprio chat
+        // Isso é importante para que o remetente veja a mensagem que acabou de enviar
+        await Clients.Caller.SendAsync("ReceivePrivateMessage", senderUserId, messagePayload);
     }
 }

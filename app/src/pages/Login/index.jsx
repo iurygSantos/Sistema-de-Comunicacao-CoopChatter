@@ -22,16 +22,17 @@ function Login() {
             // Pega token da resposta
             // const token = response.data.token;
             
-            const response = await api.post("/auth/login", data, {
+            await api.post("/auth/login", data, {
                 withCredentials: true, // Envia cookies
             });
 
-            alert(`Login realizado para usuário: ${username}`);
+            alert(`Bem vindo : ${username}`);
             
             navigate("/chat");
 
         }
-        catch (error) {
+        catch (error) 
+        {
             console.error(error);
             alert("Erro ao fazer login");
         }

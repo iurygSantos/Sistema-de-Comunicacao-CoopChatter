@@ -25,15 +25,15 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register(RegisterDto dto)
     {
         // Verifica se email já existe
-        if (await _context.usuarios.AnyAsync(u => u.username == dto.username))
+        if (await _context.usuarios.AnyAsync(u => u.username == dto.Username))
             return BadRequest("Email já cadastrado");
 
         // Cria usuário
         var user = new User
         {
-            name = dto.name,
-            username = dto.username,
-            password = _authService.HashPassword(dto.password)
+            name        = dto.Name,
+            username    = dto.Username,
+            password    = _authService.HashPassword(dto.Password)
         };
 
         // Salva no banco
@@ -48,14 +48,14 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
-        var user = await _authService.GetUser(dto.username);
+        var user = await _authService.GetUser(dto.Username);
 
         // Verifica usuário
         if (user == null)
             return Unauthorized("Usuário não encontrado");
 
         // Verifica senha
-        if (!_authService.VerifyPassword(dto.password, user.password))
+        if (!_authService.VerifyPassword(dto.Password, user.password))
             return Unauthorized("Senha inválida");
 
         // Gera token
@@ -67,7 +67,7 @@ public class AuthController : ControllerBase
             HttpOnly = true,
             Secure = false, // Em desenvolvimento (HTTP), Secure deve ser "false". Em produção (HTTPS), "true".
             SameSite = SameSiteMode.Lax,     // Use Lax ou None para permitir o envio entre portas diferentes no localhost - se for porta igual usar "Strict"
-            Expires = DateTime.UtcNow.AddMinutes(1) // Expira em 5 minutos
+            Expires = DateTime.UtcNow.AddHours(1) // Expira em 1 hora
         });
 
         return Ok(new { message = "Login realizado" });
@@ -76,7 +76,7 @@ public class AuthController : ControllerBase
 /*============================================================================================================*/
 
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout()
+    public IActionResult Logout()
     {
         Response.Cookies.Delete("token", new CookieOptions
         {
@@ -100,11 +100,9 @@ public class AuthController : ControllerBase
             // var nameClaim       = HttpContext.User.FindFirst(ClaimTypes.Name)?.Value;
             // var usernameClaim   = HttpContext.User.FindFirst("username")?.Value;
 
-
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId)) 
                 // Se o ID não for encontrado ou não for um inteiro válido, é um token inválido
                 return Unauthorized("ID de usuário inválido no token.");
-                // return NotFound("Usuário não encontrado");
 
             var user = await _context.usuarios.FindAsync(userId);
 
