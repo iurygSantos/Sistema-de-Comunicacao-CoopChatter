@@ -26,7 +26,7 @@ public class AuthService
     public async Task<User> GetUser(string username)
     {
         // Busca usuário por email
-        return await _context.Usuario.FirstOrDefaultAsync(u => u.username == username);
+        return await _context.usuario.FirstOrDefaultAsync(u => u.username == username);
     }
 }
 

@@ -7,19 +7,19 @@ const api = axios.create({
     withCredentials: true, // Envia cookies
 });
 
-// api.interceptors.response.use(
-//     (response) => response,
-//     (error) => {
-//         if (error.response && error.response.status === 401) 
-//         {
-//             console.log("Sessão inválida. Redirecionando para login...");
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response && error.response.status === 401) 
+        {
+            console.log("Sessão inválida. Redirecionando para login...");
             
-//             /*SESSÃO INVALIDA*/ 
-//             window.location.href = "/login"; // Redireciona para login
-//         }
+            /*SESSÃO INVALIDA*/ 
+            window.location.href = "/login"; // Redireciona para login
+        }
         
-//         return Promise.reject(error);
-//     }
-// );
+        return Promise.reject(error);
+    }
+);
 
 export default api;

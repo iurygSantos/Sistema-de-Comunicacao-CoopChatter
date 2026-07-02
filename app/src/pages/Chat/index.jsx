@@ -1,9 +1,17 @@
 import api from "../../services/api";
 import ButtonLogout from "../components/ButtonLogout";
+import styles from "./styles.ts";
 
 import { useState, useEffect, useRef } from "react";
 import { connection } from "../../services/signalR";
 import { HubConnectionState } from "@microsoft/signalr";
+
+const getInitials = (name = "") =>
+    name.split(" ").slice(0, 2).map((w) => w[0]).join("");
+
+const formatTime = (date) =>
+    new Date(date).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
 
 function Chat() 
 {
@@ -28,6 +36,9 @@ function Chat()
 
     // Ref para rolar automaticamente para o final da lista de mensagens
     const messagesEndRef = useRef(null);
+
+    const [loadingHistorico, setLoadingHistorico] = useState(false);
+    
 
     /**
      * useEffect para carregar os dados do usuário logado quando o componente é montado.
@@ -168,6 +179,33 @@ function Chat()
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
+    useEffect(() => 
+    {
+        if (!selectedUserId) return;
+
+        const fetchHistorico = async () => 
+        {
+            setLoadingHistorico(true);
+            try 
+            {
+                const response = await api.get(`/mensagens/historico/${selectedUserId}`);
+                const historico = response.data.map(m => ({
+                    from: m.remetenteId,
+                    to: String(m.remetenteId) === String(selectedUserId) ? loggedInUser?.idUser : selectedUserId,
+                    message: m.conteudo,
+                    time: new Date(m.dataCriacao),
+                }));
+                setMessages(historico);
+            } catch (error) {
+                console.error("Erro ao buscar histórico:", error);
+                setMessages([]);
+            } finally {
+                setLoadingHistorico(false);
+            }
+        };
+
+        fetchHistorico();
+    }, [selectedUserId, loggedInUser]);
 
     /**
      * Função para enviar uma mensagem privada para o usuário selecionado.
@@ -200,20 +238,9 @@ function Chat()
 
                 };
 
-                // console.log(JSON.stringify(messagePayload));
-
-                // console.log("\nORIGEM = " + messagePayload.from);
-                // console.log("\nESTINO = " + messagePayload.to);
-                // console.log("\nMESSAGE = " + messagePayload.message);
-
                 await connection.invoke("SendPrivateMessage", messagePayload);
 
-                // console.log(`Mensagem enviada para ${selectedUserId}: ${messagePayload}`);
-                
-                // Adiciona a mensagem enviada à lista de mensagens da conversa atual
-                // Certifique-se de que loggedInUser.idUser é o ID correto do remetente
-                // setMessages(prevMessages => [...prevMessages, { from: messagePayload.from, to: messagePayload.to, message: messagePayload.message }]);
-                
+                // console.log(`Mensagem enviada para ${selectedUserId}: ${messagePayload}`);                
                 setMessageInput(""); // Limpa o campo de input após enviar
             } 
             catch (error) 
@@ -235,8 +262,8 @@ function Chat()
      */
     const handleUserSelect = (user) => 
     {
-        console.log(selectedUserId)
-        console.log(selectedUser)
+        // console.log(selectedUserId)
+        // console.log(selectedUser)
 
         if (selectedUserId !== user.id)
         {
@@ -250,113 +277,243 @@ function Chat()
     };
 
     return (
-        <div style={{ display: 'flex', height: '100vh' }}>
-            {/* Coluna da esquerda: Usuários Online */}
-            <div style={{ width: '200px', borderRight: '1px solid #ccc', padding: '10px' }}>
-                {/* <h2>Usuários Online</h2> */}
-                {loggedInUser ? (
-                    <p> {loggedInUser.nome} </p>
-                    
-                ) : (
-                    <p>Carregando dados do usuário...</p>
-                )}
-                <ButtonLogout />
-                
-                <hr />
+        <div style={styles.root}>
 
-                <h3>Usuários online:</h3>
-                <ul>
+            {/* Sidebar */}
+            <div style={styles.sidebar}>
+                <div style={styles.sidebarHeader}>
+                    <div style={styles.userInfo}>
+                        <div style={styles.avatar}>
+                            {loggedInUser ? getInitials(loggedInUser.nome) : "?"}
+                        </div>
+                        <div>
+                            <div style={styles.userName}>
+                                {loggedInUser ? loggedInUser.nome : "Carregando..."}
+                            </div>
+                            {loggedInUser && (
+                                <div style={styles.userUsername}>{loggedInUser.username}</div>
+                            )}
+                        </div>
+                    </div>
+                    <ButtonLogout style={styles.logoutBtn} />
+                </div>
+
+                <div style={styles.sidebarSection}>Online agora</div>
+                <div style={styles.userList}>
                     {onlineUsers.length === 0 ? (
-                        <li>Nenhum usuário online.</li>
+                        <div style={styles.emptyList}>Nenhum usuário online.</div>
                     ) : (
                         onlineUsers.map((user) => (
-                            <li key={user.id} style={{ marginBottom: '5px' }}>
-                                <button 
-                                    onClick={() => handleUserSelect(user)}
-                                    style={{
-                                        fontWeight: selectedUserId === user.id ? 'bold' : 'normal',
-                                        backgroundColor: selectedUserId === user.id ? '#a3bb9a65' : 'tranparent',
-                                        border: 'none',
-                                        padding: '5px',
-                                        width: '100%',
-                                        textAlign: 'left',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    {user.name} {/* Idealmente, você teria o nome/username aqui */}
-                                </button>
-                            </li>
+                            <div
+                                key={user.id}
+                                style={styles.userItem(selectedUserId === user.id)}
+                                onClick={() => handleUserSelect(user)}
+                                onMouseEnter={(e) => { if (selectedUserId !== user.id) e.currentTarget.style.backgroundColor = "#1A2B3C"; }}
+                                onMouseLeave={(e) => { if (selectedUserId !== user.id) e.currentTarget.style.backgroundColor = "transparent"; }}
+                            >
+                                <div style={styles.onlineDot} />
+                                <span style={styles.userItemName(selectedUserId === user.id)}>
+                                    {user.name}
+                                </span>
+                            </div>
                         ))
                     )}
-                </ul>
+                </div>
             </div>
 
-            {/* Coluna da direita: Área de Chat */}
-            <div style={{ flexGrow: 1, padding: '10px', display: 'flex', flexDirection: 'column' }}>
+            {/* Área principal */}
+            <div style={styles.main}>
                 {selectedUser ? (
                     <>
-                        <h2> {selectedUser?.name} </h2>
-                        {/* Área de exibição de mensagens */}
-                        <div style={{ flexGrow: 1, border: '1px solid #eee', padding: '10px', overflowY: 'auto', marginBottom: '10px' }}>
-
-                            {
-                                messages.length === 0 ? (
-                                    <p>Nenhuma mensagem nesta conversa.</p>
-                                ) : (
-                                    messages.map((msg, index) => {
-                                        const isMine = String(msg.from) === String(loggedInUser?.idUser);
-
-                                        return (
-                                            <div
-                                                key={index}
-                                                style={{
-                                                    textAlign: isMine ? 'right' : 'left',
-                                                    margin: '5px 0'
-                                                }}
-                                            >
-                                                <span
-                                                    style={{
-                                                        backgroundColor: isMine ? '#dcf8c6' : '#f1f0f0',
-                                                        padding: '8px 12px',
-                                                        borderRadius: '15px',
-                                                        display: 'inline-block',
-                                                        maxWidth: '70%'
-                                                    }}
-                                                >
-                                                    {msg.message}
-                                                </span>
-                                            </div>
-                                        );
-                                    })
-                                )
-                            }
-                            <div ref={messagesEndRef} /> {/* Elemento para rolagem automática */}
+                        <div style={styles.chatHeader}>
+                            <div style={styles.chatAvatar}>
+                                {getInitials(selectedUser.name)}
+                            </div>
+                            <div>
+                                <div style={styles.chatName}>{selectedUser.name}</div>
+                                <div style={styles.chatStatus}>● online</div>
+                            </div>
                         </div>
 
-                        {/* Área de input de mensagem */}
-                        <div style={{ display: 'flex' }}>
+                        <div style={styles.messages}>
+                            {loadingHistorico ? (
+                                <div style={styles.emptyState}>
+                                    <div style={styles.emptySubtitle}>Carregando mensagens...</div>
+                                </div>
+                            ) : messages.length === 0 ? (
+                                <div style={styles.emptyState}>
+                                    <div style={styles.emptyIcon}>
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3D5A78" strokeWidth="2">
+                                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                        </svg>
+                                    </div>
+                                    <div style={styles.emptyTitle}>Nenhuma mensagem hoje.</div>
+                                    <div style={styles.emptySubtitle}>Diga olá para {selectedUser.name}!</div>
+                                </div>
+                            ) : (
+                                messages.map((msg, index) => {
+                                    const isMine = String(msg.from) === String(loggedInUser?.idUser);
+                                    return (
+                                        <div key={index} style={styles.msgWrapper(isMine)}>
+                                            <div style={styles.bubble(isMine)}>
+                                                {msg.message}
+                                            </div>
+                                            {msg.time && (
+                                                <span style={styles.msgTime}>
+                                                    {formatTime(msg.time)}
+                                                </span>
+                                            )}
+                                        </div>
+                                    );
+                                })
+                            )}
+                            <div ref={messagesEndRef} />
+                        </div>
+
+                        <div style={styles.inputArea}>
                             <input
+                                style={styles.textInput}
                                 type="text"
                                 value={messageInput}
                                 onChange={(e) => setMessageInput(e.target.value)}
-                                placeholder="Digite sua mensagem..."
-                                style={{ flexGrow: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '5px', marginRight: '10px' }}
-                                onKeyPress={(e) => { if (e.key === 'Enter') SendPrivateMessage(); }} onfocus="this.selectionStart = thsi.selectionEnd"
+                                onKeyDown={(e) => { if (e.key === "Enter") SendPrivateMessage(); }}
+                                placeholder={`Mensagem para ${selectedUser.name}...`}
                             />
-                            <button 
+                            <button
+                                style={styles.sendBtn(!messageInput.trim())}
                                 onClick={SendPrivateMessage}
-                                style={{ padding: '8px 15px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }} 
+                                disabled={!messageInput.trim()}
+                                aria-label="Enviar mensagem"
                             >
-                                Enviar
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
+                                    <line x1="22" y1="2" x2="11" y2="13"/>
+                                    <polygon points="22,2 15,22 11,13 2,9"/>
+                                </svg>
                             </button>
                         </div>
                     </>
                 ) : (
-                    <p>Selecione um usuário para iniciar uma conversa.</p>
+                    <div style={styles.emptyState}>
+                        <div style={styles.emptyIcon}>
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3D5A78" strokeWidth="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                        </div>
+                        <div style={styles.emptyTitle}>Selecione um usuário para conversar.</div>
+                        <div style={styles.emptySubtitle}>Os usuários online aparecem na lista à esquerda.</div>
+                    </div>
                 )}
             </div>
         </div>
     );
+    // return (
+    //     <div style={{ display: 'flex', height: '100vh' }}>
+    //         {/* Coluna da esquerda: Usuários Online */}
+    //         <div style={{ width: '200px', borderRight: '1px solid #ccc', padding: '10px' }}>
+    //             {/* <h2>Usuários Online</h2> */}
+    //             {loggedInUser ? (
+    //                 <p> {loggedInUser.nome} </p>
+                    
+    //             ) : (
+    //                 <p>Carregando dados do usuário...</p>
+    //             )}
+    //             <ButtonLogout />
+                
+    //             <hr />
+
+    //             <h3>Usuários online:</h3>
+    //             <ul>
+    //                 {onlineUsers.length === 0 ? (
+    //                     <li>Nenhum usuário online.</li>
+    //                 ) : (
+    //                     onlineUsers.map((user) => (
+    //                         <li key={user.id} style={{ marginBottom: '5px' }}>
+    //                             <button 
+    //                                 onClick={() => handleUserSelect(user)}
+    //                                 style={{
+    //                                     fontWeight: selectedUserId === user.id ? 'bold' : 'normal',
+    //                                     backgroundColor: selectedUserId === user.id ? '#a3bb9a65' : 'tranparent',
+    //                                     border: 'none',
+    //                                     padding: '5px',
+    //                                     width: '100%',
+    //                                     textAlign: 'left',
+    //                                     cursor: 'pointer'
+    //                                 }}
+    //                             >
+    //                                 {user.name} {/* Idealmente, você teria o nome/username aqui */}
+    //                             </button>
+    //                         </li>
+    //                     ))
+    //                 )}
+    //             </ul>
+    //         </div>
+
+    //         {/* Coluna da direita: Área de Chat */}
+    //         <div style={{ flexGrow: 1, padding: '10px', display: 'flex', flexDirection: 'column' }}>
+    //             {selectedUser ? (
+    //                 <>
+    //                     <h2> {selectedUser?.name} </h2>
+    //                     {/* Área de exibição de mensagens */}
+    //                     <div style={{ flexGrow: 1, border: '1px solid #eee', padding: '10px', overflowY: 'auto', marginBottom: '10px' }}>
+
+    //                         {
+    //                             messages.length === 0 ? (
+    //                                 <p>Nenhuma mensagem nesta conversa.</p>
+    //                             ) : (
+    //                                 messages.map((msg, index) => {
+    //                                     const isMine = String(msg.from) === String(loggedInUser?.idUser);
+
+    //                                     return (
+    //                                         <div
+    //                                             key={index}
+    //                                             style={{
+    //                                                 textAlign: isMine ? 'right' : 'left',
+    //                                                 margin: '5px 0'
+    //                                             }}
+    //                                         >
+    //                                             <span
+    //                                                 style={{
+    //                                                     backgroundColor: isMine ? '#dcf8c6' : '#f1f0f0',
+    //                                                     padding: '8px 12px',
+    //                                                     borderRadius: '15px',
+    //                                                     display: 'inline-block',
+    //                                                     maxWidth: '70%'
+    //                                                 }}
+    //                                             >
+    //                                                 {msg.message}
+    //                                             </span>
+    //                                         </div>
+    //                                     );
+    //                                 })
+    //                             )
+    //                         }
+    //                         <div ref={messagesEndRef} /> {/* Elemento para rolagem automática */}
+    //                     </div>
+
+    //                     {/* Área de input de mensagem */}
+    //                     <div style={{ display: 'flex' }}>
+    //                         <input
+    //                             type="text"
+    //                             value={messageInput}
+    //                             onChange={(e) => setMessageInput(e.target.value)}
+    //                             placeholder="Digite sua mensagem..."
+    //                             style={{ flexGrow: 1, padding: '8px', border: '1px solid #ccc', borderRadius: '5px', marginRight: '10px' }}
+    //                             onKeyPress={(e) => { if (e.key === 'Enter') SendPrivateMessage(); }} onfocus="this.selectionStart = thsi.selectionEnd"
+    //                         />
+    //                         <button 
+    //                             onClick={SendPrivateMessage}
+    //                             style={{ padding: '8px 15px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }} 
+    //                         >
+    //                             Enviar
+    //                         </button>
+    //                     </div>
+    //                 </>
+    //             ) : (
+    //                 <p>Selecione um usuário para iniciar uma conversa.</p>
+    //             )}
+    //         </div>
+    //     </div>
+    // );
 }
 
 export default Chat;

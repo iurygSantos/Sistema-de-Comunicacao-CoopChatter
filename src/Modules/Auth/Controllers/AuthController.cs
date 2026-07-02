@@ -25,7 +25,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register(RegisterDto dto)
     {
         // Verifica se email já existe
-        if (await _context.Usuario.AnyAsync(u => u.username == dto.Username))
+        if (await _context.usuario.AnyAsync(u => u.username == dto.Username))
             return BadRequest("Email já cadastrado");
 
         // Cria usuário
@@ -37,7 +37,7 @@ public class AuthController : ControllerBase
         };
 
         // Salva no banco
-        _context.Usuario.Add(user);
+        _context.usuario.Add(user);
         await _context.SaveChangesAsync();
 
         return Ok();
@@ -48,6 +48,8 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginDto dto)
     {
+        // Console.WriteLine($"\nDado do usuário recebido: {dto.Username} + Senha: {dto.Password}\n");
+
         var user = await _authService.GetUser(dto.Username);
 
         // Verifica usuário
@@ -60,6 +62,9 @@ public class AuthController : ControllerBase
 
         // Gera token
         var token = _tokenService.GenerateToken(user);
+
+        // Console.WriteLine($"Token gerado: {token}");
+        // Console.WriteLine($"Usuário validado gerado: {token}");
         
         /*CRIA COOKIE HTTP ONLY*/
         Response.Cookies.Append("token", token, new CookieOptions
@@ -114,14 +119,12 @@ public class AuthController : ControllerBase
         try 
         {
             var userIdClaim     = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
-            // var nameClaim       = HttpContext.User.FindFirst(ClaimTypes.Name)?.Value;
-            // var usernameClaim   = HttpContext.User.FindFirst("username")?.Value;
 
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId)) 
                 // Se o ID não for encontrado ou não for um inteiro válido, é um token inválido
                 return Unauthorized("ID de usuário inválido no token.");
 
-            var user = await _context.Usuario.FindAsync(userId);
+            var user = await _context.usuario.FindAsync(userId);
 
             if (user == null) 
                 return NotFound("Usuário não encontrado no sistema.");
